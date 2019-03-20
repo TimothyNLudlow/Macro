@@ -1,0 +1,56 @@
+---
+title: "Problem3"
+output:
+  pdf_document: default
+  html_document:
+    df_print: paged
+---
+
+To get the data
+```{r}
+library(tidyverse)
+library(lubridate)
+data_00 = load("~/Dropbox/UQ/2019 Sem1/8800 Macro/R/2 Prob Set/data_00.Rda")
+
+data3 = filter(data_00, sex == 1)
+data3 = data3 %>%      
+  mutate(educate = ifelse(deduc_2==1 | deduc_3==1 | deduc_4==1, 1, 0)) # 1 is college, 0 is HS
+data3a = data3 %>%
+  group_by(year, educate) %>%
+  summarise(supply = mean(wkswork), wages = mean(lrwage))
+
+aa = log(filter(data3a, educate == 1)$supply) - log(filter(data3a, educate == 0)$supply)
+aa = matrix(aa, length(aa), 1)
+colnames(aa) = c("relative_supply")
+
+bb = filter(data3a, educate == 1)$wages - filter(data3a, educate == 0)$wages
+bb = matrix(bb, length(bb), 1)
+colnames(bb) = c("relative_wage")
+
+cc = c((1963:2018)-1963)
+cc = matrix(cc, length(cc), 1)
+colnames(cc) = c("year")
+
+dd = data.frame(cc,aa,bb) # new data
+
+ee = matrix(log(plott$Ploty), length(plott$Ploty), 1) # using data from figure 2
+colnames(ee) = c("relative_supply")
+dd1 = data.frame(cc,ee,bb)
+```
+This is running the 3 linear regressions for the 3 different time periods
+
+```{r}
+# Running linear models for 3 time periods
+
+model1 = lm( relative_wage ~ relative_supply + year, data = filter(dd1, year <= (1987-1962)) )
+model2 = lm( relative_wage ~ relative_supply + I(year-26), data = filter(dd1, year >= (1988-1962)) )
+model3 = lm( relative_wage ~ relative_supply + year, data = dd1)
+model1
+model2
+model3
+```
+
+The regression for 1963-1987 differs from Katz and Murphy (1992). The coefficient on log relative supply is positive, compared to a negative value in the paper. The coefficient on time is negative, while this is positive in the paper. 
+For 1988-2017 the coefficient on time is now positive, but the relative supply coefficient is still the opposite sign as the paper.
+When I run the entire time period, the coefficients still have the opposite sign as the paper. 
+I would consider that there is a problem that has occurred when I created the variables.
